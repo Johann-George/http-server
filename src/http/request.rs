@@ -1,19 +1,33 @@
-use super::method::{ Method, MethodError };
 use super::QueryString;
+use super::method::{Method, MethodError};
 use std::convert::TryFrom;
 use std::error::Error;
-use std::fmt::Display;
 use std::fmt::Debug;
+use std::fmt::Display;
 use std::fmt::Formatter;
 use std::fmt::Result as FmtResult;
-use std::str::Utf8Error;
 use std::str;
+use std::str::Utf8Error;
 
 #[derive(Debug)]
 pub struct Request<'buf> {
     path: &'buf str,
     query_string: Option<QueryString<'buf>>,
     method: Method,
+}
+
+impl<'buf> Request<'buf> {
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn method(&self) -> &Method {
+        &self.method
+    }
+
+    pub fn query_string(&self) -> Option<&QueryString> {
+        self.query_string.as_ref()
+    }
 }
 
 impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
@@ -42,14 +56,13 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
         Ok(Self {
             path,
             query_string,
-            method
+            method,
         })
-
     }
 }
 
 fn get_next_word(request: &str) -> Option<(&str, &str)> {
-    for (i,c) in request.chars().enumerate() {
+    for (i, c) in request.chars().enumerate() {
         if c == ' ' || c == '\r' {
             return Some((&request[..i], &request[i + 1..]));
         }
@@ -72,7 +85,6 @@ impl ParseError {
             Self::InvalidEncoding => "Invalid Encoding",
             Self::InvalidProtocol => "Invalid Protocol",
             Self::InvalidMethod => "Invalid Method",
-
         }
     }
 }
@@ -101,4 +113,5 @@ impl Debug for ParseError {
     }
 }
 
-impl Error for ParseError{}
+impl Error for ParseError {}
+
